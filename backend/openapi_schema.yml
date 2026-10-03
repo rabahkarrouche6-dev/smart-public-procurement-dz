@@ -1,0 +1,5488 @@
+openapi: 3.0.3
+info:
+  title: منصة الصفقات العمومية الذكية في الجزائر — API v1
+  version: 1.0.0
+  description: API REST officielle de la Plateforme Intelligente des Marchés Publics
+    en Algérie (Loi 23-12 & Décret 15-247).
+paths:
+  /api/v1/ai/query/:
+    post:
+      operationId: v1_ai_query_create
+      description: Secure AI Gateway query endpoint.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/audit/:
+    get:
+      operationId: v1_audit_list
+      description: |-
+        Read-only view for audit logs.
+        Modifications and deletions are blocked by design.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogList'
+          description: ''
+  /api/v1/audit/{id}/:
+    get:
+      operationId: v1_audit_retrieve
+      description: |-
+        Read-only view for audit logs.
+        Modifications and deletions are blocked by design.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLog'
+          description: ''
+  /api/v1/auth/login/:
+    post:
+      operationId: v1_auth_login_create
+      description: User login returning profile and authentication token.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/me/:
+    get:
+      operationId: v1_auth_me_retrieve
+      description: Returns profile and workspace metadata of the currently authenticated
+        user.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/register/:
+    post:
+      operationId: v1_auth_register_create
+      description: User registration with progressive profile disclosure.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/bids/:
+    get:
+      operationId: v1_bids_list
+      description: |-
+        Bid submissions and opening API.
+        Enforces sealed folds and deadline locks.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - in: query
+        name: procurement
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          title: حالة العرض
+          enum:
+          - ACCEPTED
+          - DRAFT
+          - LOCKED
+          - OPENED
+          - REJECTED
+          - SUBMITTED
+          - UNDER_EVALUATION
+          - WITHDRAWN
+        description: |-
+          * `DRAFT` - مسودة قيد التحضير
+          * `SUBMITTED` - تم الإيداع رسمياً (مغلق ومشفر)
+          * `LOCKED` - مغلق قانونياً بعد انقضاء الأجل
+          * `OPENED` - تم فتح الظرف في الجلسة العلنية
+          * `UNDER_EVALUATION` - قيد دراسة وتقييم العروض
+          * `ACCEPTED` - مقبول ومطابق
+          * `REJECTED` - مرفوض وغير مطابق
+          * `WITHDRAWN` - مسحوب من طرف العارض
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBidList'
+          description: ''
+    post:
+      operationId: v1_bids_create
+      description: |-
+        Bid submissions and opening API.
+        Enforces sealed folds and deadline locks.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+  /api/v1/bids/{id}/:
+    get:
+      operationId: v1_bids_retrieve
+      description: |-
+        Bid submissions and opening API.
+        Enforces sealed folds and deadline locks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عرض متعهد.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+    put:
+      operationId: v1_bids_update
+      description: |-
+        Bid submissions and opening API.
+        Enforces sealed folds and deadline locks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عرض متعهد.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+    patch:
+      operationId: v1_bids_partial_update
+      description: |-
+        Bid submissions and opening API.
+        Enforces sealed folds and deadline locks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عرض متعهد.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBidRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBidRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBidRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+    delete:
+      operationId: v1_bids_destroy
+      description: |-
+        Bid submissions and opening API.
+        Enforces sealed folds and deadline locks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عرض متعهد.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/bids/{id}/open-fold/:
+    post:
+      operationId: v1_bids_open_fold_create
+      description: Official fold opening during opening session.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عرض متعهد.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bid'
+          description: ''
+  /api/v1/contracts/:
+    get:
+      operationId: v1_contracts_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedContractList'
+          description: ''
+    post:
+      operationId: v1_contracts_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ContractRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ContractRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+          description: ''
+  /api/v1/contracts/{id}/:
+    get:
+      operationId: v1_contracts_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عقد صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+          description: ''
+    put:
+      operationId: v1_contracts_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عقد صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ContractRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ContractRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+          description: ''
+    patch:
+      operationId: v1_contracts_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عقد صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedContractRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedContractRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedContractRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+          description: ''
+    delete:
+      operationId: v1_contracts_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عقد صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/documents/:
+    get:
+      operationId: v1_documents_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDocumentList'
+          description: ''
+    post:
+      operationId: v1_documents_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          description: ''
+  /api/v1/documents/{id}/:
+    get:
+      operationId: v1_documents_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا وثيقة رسمية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          description: ''
+    put:
+      operationId: v1_documents_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا وثيقة رسمية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DocumentRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          description: ''
+    patch:
+      operationId: v1_documents_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا وثيقة رسمية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDocumentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDocumentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDocumentRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          description: ''
+    delete:
+      operationId: v1_documents_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا وثيقة رسمية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/documents/{id}/download-url/:
+    get:
+      operationId: v1_documents_download_url_retrieve
+      description: Generates a temporary signed URL for authorized download.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا وثيقة رسمية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+          description: ''
+  /api/v1/evaluations/:
+    get:
+      operationId: v1_evaluations_list
+      description: Evaluation formulas and deterministic calculation execution.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEvaluationFormulaList'
+          description: ''
+    post:
+      operationId: v1_evaluations_create
+      description: Evaluation formulas and deterministic calculation execution.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationFormula'
+          description: ''
+  /api/v1/evaluations/{id}/:
+    get:
+      operationId: v1_evaluations_retrieve
+      description: Evaluation formulas and deterministic calculation execution.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صيغة تقييم العروض.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationFormula'
+          description: ''
+    put:
+      operationId: v1_evaluations_update
+      description: Evaluation formulas and deterministic calculation execution.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صيغة تقييم العروض.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationFormula'
+          description: ''
+    patch:
+      operationId: v1_evaluations_partial_update
+      description: Evaluation formulas and deterministic calculation execution.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صيغة تقييم العروض.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationFormulaRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationFormulaRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEvaluationFormulaRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationFormula'
+          description: ''
+    delete:
+      operationId: v1_evaluations_destroy
+      description: Evaluation formulas and deterministic calculation execution.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صيغة تقييم العروض.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/evaluations/calculate/:
+    post:
+      operationId: v1_evaluations_calculate_create
+      description: Evaluation formulas and deterministic calculation execution.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvaluationFormulaRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationFormula'
+          description: ''
+  /api/v1/execution/service-orders/:
+    get:
+      operationId: v1_execution_service_orders_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedServiceOrderList'
+          description: ''
+    post:
+      operationId: v1_execution_service_orders_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceOrderRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOrder'
+          description: ''
+  /api/v1/execution/service-orders/{id}/:
+    get:
+      operationId: v1_execution_service_orders_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا أمر بالخدمة (ODS).
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOrder'
+          description: ''
+    put:
+      operationId: v1_execution_service_orders_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا أمر بالخدمة (ODS).
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceOrderRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOrder'
+          description: ''
+    patch:
+      operationId: v1_execution_service_orders_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا أمر بالخدمة (ODS).
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceOrderRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceOrder'
+          description: ''
+    delete:
+      operationId: v1_execution_service_orders_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا أمر بالخدمة (ODS).
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/investments/budgets/:
+    get:
+      operationId: v1_investments_budgets_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBudgetList'
+          description: ''
+    post:
+      operationId: v1_investments_budgets_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BudgetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BudgetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BudgetRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+  /api/v1/investments/budgets/{id}/:
+    get:
+      operationId: v1_investments_budgets_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا ميزانية سنوية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    put:
+      operationId: v1_investments_budgets_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا ميزانية سنوية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BudgetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BudgetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BudgetRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    patch:
+      operationId: v1_investments_budgets_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا ميزانية سنوية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBudgetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBudgetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBudgetRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    delete:
+      operationId: v1_investments_budgets_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا ميزانية سنوية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/investments/operations/:
+    get:
+      operationId: v1_investments_operations_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvestmentOperationList'
+          description: ''
+    post:
+      operationId: v1_investments_operations_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestmentOperationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InvestmentOperationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InvestmentOperationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentOperation'
+          description: ''
+  /api/v1/investments/operations/{id}/:
+    get:
+      operationId: v1_investments_operations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عملية استثمارية عمومية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentOperation'
+          description: ''
+    put:
+      operationId: v1_investments_operations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عملية استثمارية عمومية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvestmentOperationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InvestmentOperationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InvestmentOperationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentOperation'
+          description: ''
+    patch:
+      operationId: v1_investments_operations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عملية استثمارية عمومية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedInvestmentOperationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedInvestmentOperationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedInvestmentOperationRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvestmentOperation'
+          description: ''
+    delete:
+      operationId: v1_investments_operations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا عملية استثمارية عمومية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/legal/articles/:
+    get:
+      operationId: v1_legal_articles_list
+      description: Search and view authoritative Algerian legal articles.
+      parameters:
+      - in: query
+        name: document__official_number
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLegalArticleList'
+          description: ''
+  /api/v1/legal/articles/{id}/:
+    get:
+      operationId: v1_legal_articles_retrieve
+      description: Search and view authoritative Algerian legal articles.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا مادة قانونية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LegalArticle'
+          description: ''
+  /api/v1/notifications/:
+    get:
+      operationId: v1_notifications_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+    post:
+      operationId: v1_notifications_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/{id}/:
+    get:
+      operationId: v1_notifications_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا إشعار وتنبيه.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    put:
+      operationId: v1_notifications_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا إشعار وتنبيه.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    patch:
+      operationId: v1_notifications_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا إشعار وتنبيه.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedNotificationRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+    delete:
+      operationId: v1_notifications_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا إشعار وتنبيه.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/notifications/{id}/mark-read/:
+    post:
+      operationId: v1_notifications_mark_read_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا إشعار وتنبيه.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/NotificationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/organizations/:
+    get:
+      operationId: v1_organizations_list
+      description: CRUD API for Organizations with tenant permissions.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - in: query
+        name: org_type
+        schema:
+          type: string
+          title: طبيعة ونوع الهيئة
+          enum:
+          - CENTRAL_ADMIN
+          - CONTRACTING_AUTHORITY
+          - ECONOMIC_OPERATOR
+        description: |-
+          * `CONTRACTING_AUTHORITY` - مصلحة متعاقدة (إدارة / مؤسسة عمومية)
+          * `ECONOMIC_OPERATOR` - متعامل اقتصادي (مؤسسة / شركة)
+          * `CENTRAL_ADMIN` - إدارة مركزية (هيئة رقابة وتوجيه)
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      - in: query
+        name: verification_status
+        schema:
+          type: string
+          title: حالة التدقيق والتحقق
+          enum:
+          - PENDING
+          - REJECTED
+          - VERIFIED
+        description: |-
+          * `PENDING` - قيد التحقق والتأكيد
+          * `VERIFIED` - محققة ومعتمدة
+          * `REJECTED` - مرفوضة
+      - in: query
+        name: wilaya_code
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganizationList'
+          description: ''
+    post:
+      operationId: v1_organizations_create
+      description: CRUD API for Organizations with tenant permissions.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrganizationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrganizationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+  /api/v1/organizations/{id}/:
+    get:
+      operationId: v1_organizations_retrieve
+      description: CRUD API for Organizations with tenant permissions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا هيئة / مؤسسة.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    put:
+      operationId: v1_organizations_update
+      description: CRUD API for Organizations with tenant permissions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا هيئة / مؤسسة.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrganizationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrganizationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrganizationRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    patch:
+      operationId: v1_organizations_partial_update
+      description: CRUD API for Organizations with tenant permissions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا هيئة / مؤسسة.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganizationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganizationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganizationRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    delete:
+      operationId: v1_organizations_destroy
+      description: CRUD API for Organizations with tenant permissions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا هيئة / مؤسسة.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/procurements/:
+    get:
+      operationId: v1_procurements_list
+      description: |-
+        Procurement CRUD and FSM lifecycle transition API.
+        Tenant-scoped:
+        - Contracting Authorities manage their own tenders.
+        - Economic Operators view published active tenders.
+        - Central Admin oversees all tenders.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - in: query
+        name: organization
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - in: query
+        name: procedure_type
+        schema:
+          type: string
+          title: طريقة وإجراء الإبرام
+          enum:
+          - COMPETITIVE_DIALOGUE
+          - CONSULTATION
+          - OPEN_TENDER
+          - RESTRICTED_TENDER
+        description: |-
+          * `OPEN_TENDER` - طلب عروض مفتوح
+          * `RESTRICTED_TENDER` - طلب عروض محدود
+          * `COMPETITIVE_DIALOGUE` - مسابقة أو حوار تنافسي
+          * `CONSULTATION` - استشارة / إجراء مكيف
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          title: حالة الصفقة الحالية
+          enum:
+          - APPEAL
+          - APPROVAL
+          - BID_SUBMISSION
+          - CANCELLED
+          - CLOSED
+          - CONTRACT
+          - DRAFT
+          - EVALUATION
+          - EXECUTION
+          - OPENING
+          - PREPARATION
+          - PROVISIONAL_AWARD
+          - PUBLICATION
+          - RECEPTION
+        description: |-
+          * `DRAFT` - مسودة
+          * `PREPARATION` - قيد التحضير والإعداد
+          * `APPROVAL` - مصادقة لجنة الصفقات
+          * `PUBLICATION` - إشهار ونشر الإعلان
+          * `BID_SUBMISSION` - مرحلة إيداع العروض
+          * `OPENING` - جلسة فتح الأظرفة
+          * `EVALUATION` - تقييم العروض والترتيب
+          * `PROVISIONAL_AWARD` - الإعلان عن المنح المؤقت
+          * `APPEAL` - فترة الطعون القانونية
+          * `CONTRACT` - إبرام وتوقيع العقد
+          * `EXECUTION` - مرحلة التنفيذ الميداني
+          * `RECEPTION` - الاستلام المؤقت / النهائي
+          * `CLOSED` - مغلقة ومنتهية
+          * `CANCELLED` - ملغاة
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProcurementList'
+          description: ''
+    post:
+      operationId: v1_procurements_create
+      description: |-
+        Procurement CRUD and FSM lifecycle transition API.
+        Tenant-scoped:
+        - Contracting Authorities manage their own tenders.
+        - Economic Operators view published active tenders.
+        - Central Admin oversees all tenders.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procurement'
+          description: ''
+  /api/v1/procurements/{id}/:
+    get:
+      operationId: v1_procurements_retrieve
+      description: |-
+        Procurement CRUD and FSM lifecycle transition API.
+        Tenant-scoped:
+        - Contracting Authorities manage their own tenders.
+        - Economic Operators view published active tenders.
+        - Central Admin oversees all tenders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procurement'
+          description: ''
+    put:
+      operationId: v1_procurements_update
+      description: |-
+        Procurement CRUD and FSM lifecycle transition API.
+        Tenant-scoped:
+        - Contracting Authorities manage their own tenders.
+        - Economic Operators view published active tenders.
+        - Central Admin oversees all tenders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procurement'
+          description: ''
+    patch:
+      operationId: v1_procurements_partial_update
+      description: |-
+        Procurement CRUD and FSM lifecycle transition API.
+        Tenant-scoped:
+        - Contracting Authorities manage their own tenders.
+        - Economic Operators view published active tenders.
+        - Central Admin oversees all tenders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProcurementRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProcurementRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProcurementRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procurement'
+          description: ''
+    delete:
+      operationId: v1_procurements_destroy
+      description: |-
+        Procurement CRUD and FSM lifecycle transition API.
+        Tenant-scoped:
+        - Contracting Authorities manage their own tenders.
+        - Economic Operators view published active tenders.
+        - Central Admin oversees all tenders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/procurements/{id}/transition/:
+    post:
+      operationId: v1_procurements_transition_create
+      description: |-
+        Procurement CRUD and FSM lifecycle transition API.
+        Tenant-scoped:
+        - Contracting Authorities manage their own tenders.
+        - Economic Operators view published active tenders.
+        - Central Admin oversees all tenders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا صفقة عمومية.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProcurementRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procurement'
+          description: ''
+  /api/v1/projects/:
+    get:
+      operationId: v1_projects_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProjectList'
+          description: ''
+    post:
+      operationId: v1_projects_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+  /api/v1/projects/{id}/:
+    get:
+      operationId: v1_projects_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا مشروع.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    put:
+      operationId: v1_projects_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا مشروع.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    patch:
+      operationId: v1_projects_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا مشروع.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProjectRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+          description: ''
+    delete:
+      operationId: v1_projects_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا مشروع.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/reception/:
+    get:
+      operationId: v1_reception_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReceptionRecordList'
+          description: ''
+    post:
+      operationId: v1_reception_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceptionRecordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReceptionRecordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReceptionRecordRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionRecord'
+          description: ''
+  /api/v1/reception/{id}/:
+    get:
+      operationId: v1_reception_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا محضر استلام.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionRecord'
+          description: ''
+    put:
+      operationId: v1_reception_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا محضر استلام.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceptionRecordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReceptionRecordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReceptionRecordRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionRecord'
+          description: ''
+    patch:
+      operationId: v1_reception_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا محضر استلام.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReceptionRecordRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReceptionRecordRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReceptionRecordRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptionRecord'
+          description: ''
+    delete:
+      operationId: v1_reception_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا محضر استلام.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/subscriptions/current/:
+    get:
+      operationId: v1_subscriptions_current_retrieve
+      description: Returns current active subscription tier for user's organization.
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/tender-documents/:
+    get:
+      operationId: v1_tender_documents_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: أي حقل يجب استخدامه عند ترتيب النتائج.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: رقم الصفحة ضمن النتائج المقسمة.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: عدد النتائج التي يجب إرجاعها في كل صفحة.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: مصطلح البحث.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTenderDocumentList'
+          description: ''
+    post:
+      operationId: v1_tender_documents_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenderDocumentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TenderDocumentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenderDocumentRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenderDocument'
+          description: ''
+  /api/v1/tender-documents/{id}/:
+    get:
+      operationId: v1_tender_documents_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا دفتر شروط.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenderDocument'
+          description: ''
+    put:
+      operationId: v1_tender_documents_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا دفتر شروط.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenderDocumentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TenderDocumentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TenderDocumentRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenderDocument'
+          description: ''
+    patch:
+      operationId: v1_tender_documents_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا دفتر شروط.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTenderDocumentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTenderDocumentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTenderDocumentRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenderDocument'
+          description: ''
+    delete:
+      operationId: v1_tender_documents_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+          title: المعرف الفريد
+        description: نوع نص UUID يحدد هذا دفتر شروط.
+        required: true
+      tags:
+      - v1
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        actor:
+          type: string
+          format: uuid
+          title: المستخدم المنفذ
+          nullable: true
+        actor_email:
+          title: بريد المنفذ
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة المعنية
+          nullable: true
+        action:
+          type: string
+          title: نوع الإجراء
+          maxLength: 60
+        resource_type:
+          type: string
+          title: نوع الكيان
+          maxLength: 60
+        resource_id:
+          type: string
+          title: معرف الكيان
+          maxLength: 100
+        old_values:
+          nullable: true
+          title: القيم السابقة
+        new_values:
+          nullable: true
+          title: القيم الجديدة
+        correlation_id:
+          type: string
+          title: معرف الارتباط (Correlation ID)
+          maxLength: 100
+        ip_address:
+          type: string
+          nullable: true
+          title: عنوان IP
+        result:
+          allOf:
+          - $ref: '#/components/schemas/ResultEnum'
+          title: النتيجة
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: وقت التسجيل
+      required:
+      - action
+      - created_at
+      - id
+      - resource_id
+      - resource_type
+    Bid:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية المعنية
+        procurement_title:
+          type: string
+          readOnly: true
+        bidder:
+          type: string
+          format: uuid
+          title: المتعامل الاقتصادي العارض
+          readOnly: true
+        bidder_name:
+          type: string
+          readOnly: true
+        submitted_by:
+          type: string
+          format: uuid
+          title: المستخدم المودع للعرض
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BidStatusEnum'
+          title: حالة العرض
+        status_display:
+          type: string
+          readOnly: true
+        financial_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبلغ المالي المقترح (دج)
+        execution_delay_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: أجل التنفيذ المقترح (بالأيام)
+        technical_offer_doc:
+          type: string
+          format: uuid
+          title: ملف العرض التقني
+          nullable: true
+        financial_offer_doc:
+          type: string
+          format: uuid
+          title: ملف العرض المالي
+          nullable: true
+        administrative_doc:
+          type: string
+          format: uuid
+          title: ملف الترشح والوثائق الإدارية
+          nullable: true
+        submitted_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: تاريخ وساعة الإيداع المؤكد
+        is_opened:
+          type: boolean
+          readOnly: true
+          title: تم فتح الأظرفة
+        opening_timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+          title: توقيت فتح الأظرفة
+        technical_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,4})?$
+          readOnly: true
+          nullable: true
+          title: العلامة التقنية الممنوحة
+        financial_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,4})?$
+          readOnly: true
+          nullable: true
+          title: العلامة المالية الممنوحة
+        total_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,4})?$
+          readOnly: true
+          nullable: true
+          title: العلامة الإجمالية المرجحة
+        ranking:
+          type: integer
+          readOnly: true
+          nullable: true
+          title: الترتيب النهائي
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ التحديث
+      required:
+      - bidder
+      - bidder_name
+      - created_at
+      - financial_score
+      - id
+      - is_opened
+      - opening_timestamp
+      - procurement
+      - procurement_title
+      - ranking
+      - status_display
+      - submitted_at
+      - submitted_by
+      - technical_score
+      - total_score
+      - updated_at
+    BidRequest:
+      type: object
+      properties:
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية المعنية
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BidStatusEnum'
+          title: حالة العرض
+        financial_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبلغ المالي المقترح (دج)
+        execution_delay_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: أجل التنفيذ المقترح (بالأيام)
+        technical_offer_doc:
+          type: string
+          format: uuid
+          title: ملف العرض التقني
+          nullable: true
+        financial_offer_doc:
+          type: string
+          format: uuid
+          title: ملف العرض المالي
+          nullable: true
+        administrative_doc:
+          type: string
+          format: uuid
+          title: ملف الترشح والوثائق الإدارية
+          nullable: true
+      required:
+      - procurement
+    BidStatusEnum:
+      enum:
+      - DRAFT
+      - SUBMITTED
+      - LOCKED
+      - OPENED
+      - UNDER_EVALUATION
+      - ACCEPTED
+      - REJECTED
+      - WITHDRAWN
+      type: string
+      description: |-
+        * `DRAFT` - مسودة قيد التحضير
+        * `SUBMITTED` - تم الإيداع رسمياً (مغلق ومشفر)
+        * `LOCKED` - مغلق قانونياً بعد انقضاء الأجل
+        * `OPENED` - تم فتح الظرف في الجلسة العلنية
+        * `UNDER_EVALUATION` - قيد دراسة وتقييم العروض
+        * `ACCEPTED` - مقبول ومطابق
+        * `REJECTED` - مرفوض وغير مطابق
+        * `WITHDRAWN` - مسحوب من طرف العارض
+    Budget:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        organization_name:
+          type: string
+          readOnly: true
+        fiscal_year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: السنة المالية
+        initial_allocation:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: الاعتماد المالي المبدئي (دج)
+        current_allocation:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: الاعتماد المالي الحالي (دج)
+        committed_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبالغ الملتزم بها (دج)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - created_at
+      - current_allocation
+      - fiscal_year
+      - id
+      - initial_allocation
+      - organization
+      - organization_name
+    BudgetRequest:
+      type: object
+      properties:
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        fiscal_year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: السنة المالية
+        initial_allocation:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: الاعتماد المالي المبدئي (دج)
+        current_allocation:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: الاعتماد المالي الحالي (دج)
+        committed_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبالغ الملتزم بها (دج)
+      required:
+      - current_allocation
+      - fiscal_year
+      - initial_allocation
+      - organization
+    Contract:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        contract_number:
+          type: string
+          title: رقم العقد أو الصفقة المبرمة
+          maxLength: 60
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية الأصلية
+        winning_bid:
+          type: string
+          format: uuid
+          title: العرض الفائز المعتمد
+        contractor:
+          type: string
+          format: uuid
+          title: المتعامل الاقتصادي الحائز على الصفقة
+        contractor_name:
+          type: string
+          readOnly: true
+        contract_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبلغ الإجمالي للصفقة (دج)
+        performance_guarantee_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: مبلغ كفالة حسن التنفيذ (دج)
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ContractStatusEnum'
+          title: حالة العقد
+        signature_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاريخ توقيع الصفقة
+        start_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاريخ سريان العقد
+        completion_delay_months:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: مدة الإنجاز بالشهور
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - contract_amount
+      - contract_number
+      - contractor
+      - contractor_name
+      - created_at
+      - id
+      - procurement
+      - winning_bid
+    ContractRequest:
+      type: object
+      properties:
+        contract_number:
+          type: string
+          minLength: 1
+          title: رقم العقد أو الصفقة المبرمة
+          maxLength: 60
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية الأصلية
+        winning_bid:
+          type: string
+          format: uuid
+          title: العرض الفائز المعتمد
+        contractor:
+          type: string
+          format: uuid
+          title: المتعامل الاقتصادي الحائز على الصفقة
+        contract_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبلغ الإجمالي للصفقة (دج)
+        performance_guarantee_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: مبلغ كفالة حسن التنفيذ (دج)
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ContractStatusEnum'
+          title: حالة العقد
+        signature_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاريخ توقيع الصفقة
+        start_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاريخ سريان العقد
+        completion_delay_months:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: مدة الإنجاز بالشهور
+      required:
+      - contract_amount
+      - contract_number
+      - contractor
+      - procurement
+      - winning_bid
+    ContractStatusEnum:
+      enum:
+      - DRAFT
+      - SIGNED
+      - ACTIVE
+      - COMPLETED
+      - TERMINATED
+      type: string
+      description: |-
+        * `DRAFT` - مسودة العقد
+        * `SIGNED` - موقع ومصادق عليه
+        * `ACTIVE` - ساري المفعول قيد التنفيذ
+        * `COMPLETED` - مكتمل ومنتهي
+        * `TERMINATED` - مفسوخ
+    DataProvenanceEnum:
+      enum:
+      - OFFICIAL_SOURCE
+      - API_RETRIEVED
+      - USER_PROVIDED
+      - AI_GENERATED
+      - SAMPLE_DATA
+      type: string
+      description: |-
+        * `OFFICIAL_SOURCE` - مصدر رسمي معتمد
+        * `API_RETRIEVED` - مسترجع عبر واجهة برمجة مؤكدة
+        * `USER_PROVIDED` - مقدم من المستخدم
+        * `AI_GENERATED` - مولد بمساعدة الذكاء الاصطناعي
+        * `SAMPLE_DATA` - بيانات تجريبية توضيحية
+    DecisionEnum:
+      enum:
+      - ACCEPTED_WITHOUT_RESERVATIONS
+      - ACCEPTED_WITH_RESERVATIONS
+      - REJECTED
+      type: string
+      description: |-
+        * `ACCEPTED_WITHOUT_RESERVATIONS` - قبول بدون تحفظات
+        * `ACCEPTED_WITH_RESERVATIONS` - قبول مع إبداء تحفظات
+        * `REJECTED` - رفض الاستلام لعدم المطابقة
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        title:
+          type: string
+          title: عنوان أو وصف الوثيقة
+          maxLength: 255
+        file_path:
+          type: string
+          title: المسار التخزيني الآمن
+          maxLength: 500
+        file_size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: حجم الملف بالبايت
+        mime_type:
+          type: string
+          title: نوع الملف (MIME)
+          maxLength: 100
+        file_hash_sha256:
+          type: string
+          title: البصمة الرقمية (SHA-256)
+          maxLength: 64
+        security_status:
+          allOf:
+          - $ref: '#/components/schemas/SecurityStatusEnum'
+          title: الحالة الأمنية
+        is_private:
+          type: boolean
+          title: ملف محمي (غير متاح للعامة)
+        uploaded_by:
+          type: string
+          format: uuid
+          title: المستخدم الذي قام بالرفع
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - created_at
+      - file_hash_sha256
+      - file_path
+      - id
+      - organization
+      - title
+      - uploaded_by
+    DocumentRequest:
+      type: object
+      properties:
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        title:
+          type: string
+          minLength: 1
+          title: عنوان أو وصف الوثيقة
+          maxLength: 255
+        file_path:
+          type: string
+          minLength: 1
+          title: المسار التخزيني الآمن
+          maxLength: 500
+        file_size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: حجم الملف بالبايت
+        mime_type:
+          type: string
+          minLength: 1
+          title: نوع الملف (MIME)
+          maxLength: 100
+        file_hash_sha256:
+          type: string
+          minLength: 1
+          title: البصمة الرقمية (SHA-256)
+          maxLength: 64
+        security_status:
+          allOf:
+          - $ref: '#/components/schemas/SecurityStatusEnum'
+          title: الحالة الأمنية
+        is_private:
+          type: boolean
+          title: ملف محمي (غير متاح للعامة)
+      required:
+      - file_hash_sha256
+      - file_path
+      - organization
+      - title
+    EvaluationCriterion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        code:
+          type: string
+          title: رمز المعيار
+          maxLength: 30
+        label:
+          type: string
+          title: نص أو مسمى المعيار
+          maxLength: 200
+        max_points:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          title: العلامة القصوى للنقاط
+      required:
+      - code
+      - id
+      - label
+      - max_points
+    EvaluationCriterionRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          minLength: 1
+          title: رمز المعيار
+          maxLength: 30
+        label:
+          type: string
+          minLength: 1
+          title: نص أو مسمى المعيار
+          maxLength: 200
+        max_points:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          title: العلامة القصوى للنقاط
+      required:
+      - code
+      - label
+      - max_points
+    EvaluationFormula:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          default: 1
+          title: إصدار صيغة التقييم
+        is_official:
+          type: boolean
+          title: صيغة رسمية معتمدة
+        technical_weight_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: نسبة ترجيح العرض التقني (%)
+        financial_weight_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: نسبة ترجيح العرض المالي (%)
+        minimum_technical_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: العتبة الدنيا للإقصاء التقني (من 100)
+        decimal_precision:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: عدد الخانات العشرية للتقريب
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationCriterion'
+          readOnly: true
+      required:
+      - criteria
+      - id
+      - procurement
+    EvaluationFormulaRequest:
+      type: object
+      properties:
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          default: 1
+          title: إصدار صيغة التقييم
+        is_official:
+          type: boolean
+          title: صيغة رسمية معتمدة
+        technical_weight_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: نسبة ترجيح العرض التقني (%)
+        financial_weight_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: نسبة ترجيح العرض المالي (%)
+        minimum_technical_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: العتبة الدنيا للإقصاء التقني (من 100)
+        decimal_precision:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: عدد الخانات العشرية للتقريب
+      required:
+      - procurement
+    InvestmentOperation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        operation_number:
+          type: string
+          title: رقم تسجيل العملية (N° Opération)
+          maxLength: 60
+        title:
+          type: string
+          title: عنوان العملية الاستثمارية
+          maxLength: 255
+        budget:
+          type: string
+          format: uuid
+          title: الميزانية المرتبطة
+        program_authorization:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: رخصة البرنامج (AP - Autorisation de Programme)
+        payment_credits:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: اعتمادات الدفع (CP - Crédits de Paiement)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - budget
+      - created_at
+      - id
+      - operation_number
+      - payment_credits
+      - program_authorization
+      - title
+    InvestmentOperationRequest:
+      type: object
+      properties:
+        operation_number:
+          type: string
+          minLength: 1
+          title: رقم تسجيل العملية (N° Opération)
+          maxLength: 60
+        title:
+          type: string
+          minLength: 1
+          title: عنوان العملية الاستثمارية
+          maxLength: 255
+        budget:
+          type: string
+          format: uuid
+          title: الميزانية المرتبطة
+        program_authorization:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: رخصة البرنامج (AP - Autorisation de Programme)
+        payment_credits:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: اعتمادات الدفع (CP - Crédits de Paiement)
+      required:
+      - budget
+      - operation_number
+      - payment_credits
+      - program_authorization
+      - title
+    LegalArticle:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        document:
+          type: string
+          format: uuid
+          title: النص القانوني المصدر
+        document_title:
+          type: string
+          readOnly: true
+        official_number:
+          type: string
+          readOnly: true
+        article_number:
+          type: string
+          title: رقم المادة
+          maxLength: 30
+        title:
+          type: string
+          title: عنوان أو موضوع المادة
+          maxLength: 255
+        content_ar:
+          type: string
+          title: نص المادة باللغة العربية (النص الرسمي)
+        content_fr:
+          type: string
+          title: نص المادة باللغة الفرنسية
+        keywords:
+          title: الكلمات المفتاحية والتصنيفات
+      required:
+      - article_number
+      - content_ar
+      - document
+      - document_title
+      - id
+      - official_number
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          title: نوع التنبيه
+        title:
+          type: string
+          title: عنوان التنبيه
+          maxLength: 255
+        message:
+          type: string
+          title: نص الرسالة والتفاصيل
+        resource_type:
+          type: string
+          title: نوع الكيان المرتبط
+          maxLength: 50
+        resource_id:
+          type: string
+          title: معرف الكيان
+          maxLength: 100
+        is_read:
+          type: boolean
+          title: تمت القراءة
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - created_at
+      - id
+      - message
+      - notification_type
+      - title
+    NotificationRequest:
+      type: object
+      properties:
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          title: نوع التنبيه
+        title:
+          type: string
+          minLength: 1
+          title: عنوان التنبيه
+          maxLength: 255
+        message:
+          type: string
+          minLength: 1
+          title: نص الرسالة والتفاصيل
+        resource_type:
+          type: string
+          title: نوع الكيان المرتبط
+          maxLength: 50
+        resource_id:
+          type: string
+          title: معرف الكيان
+          maxLength: 100
+        is_read:
+          type: boolean
+          title: تمت القراءة
+      required:
+      - message
+      - notification_type
+      - title
+    NotificationTypeEnum:
+      enum:
+      - DEADLINE_ALERT
+      - PROCUREMENT_PUBLISHED
+      - BID_SUBMITTED
+      - BID_OPENED
+      - EVALUATION_COMPLETED
+      - PROVISIONAL_AWARD
+      - RISK_ALERT
+      type: string
+      description: |-
+        * `DEADLINE_ALERT` - تنبيه اقتراب أجل قانوني
+        * `PROCUREMENT_PUBLISHED` - نشر إعلان صفقة جديدة
+        * `BID_SUBMITTED` - تأكيد إيداع العرض
+        * `BID_OPENED` - فتح الأظرفة
+        * `EVALUATION_COMPLETED` - استكمال تقييم العروض
+        * `PROVISIONAL_AWARD` - إعلان المنح المؤقت للصفقة
+        * `RISK_ALERT` - إنذار بمؤشر مخاطر
+    OdsTypeEnum:
+      enum:
+      - COMMENCE_WORK
+      - STOP_WORK
+      - RESUME_WORK
+      type: string
+      description: |-
+        * `COMMENCE_WORK` - أمر ببداية الأشغال أو الخدمات
+        * `STOP_WORK` - أمر بتوقيف الأشغال
+        * `RESUME_WORK` - أمر باستئناف الأشغال
+    OrgTypeEnum:
+      enum:
+      - CONTRACTING_AUTHORITY
+      - ECONOMIC_OPERATOR
+      - CENTRAL_ADMIN
+      type: string
+      description: |-
+        * `CONTRACTING_AUTHORITY` - مصلحة متعاقدة (إدارة / مؤسسة عمومية)
+        * `ECONOMIC_OPERATOR` - متعامل اقتصادي (مؤسسة / شركة)
+        * `CENTRAL_ADMIN` - إدارة مركزية (هيئة رقابة وتوجيه)
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        name:
+          type: string
+          title: الاسم الرسمي للهيئة أو المؤسسة
+          maxLength: 255
+        org_type:
+          allOf:
+          - $ref: '#/components/schemas/OrgTypeEnum'
+          title: طبيعة ونوع الهيئة
+        nif:
+          type: string
+          nullable: true
+          title: رقم التعريف الجبائي (NIF)
+          maxLength: 30
+        registration_number:
+          type: string
+          nullable: true
+          title: السجل التجاري أو مرسوم الإنشاء
+          maxLength: 50
+        nis:
+          type: string
+          nullable: true
+          title: رقم التعريف الإحصائي (NIS)
+          maxLength: 30
+        legal_status:
+          type: string
+          nullable: true
+          title: الشكل القانوني
+          maxLength: 100
+        wilaya_code:
+          type: string
+          nullable: true
+          title: رمز الولاية (01-58)
+          maxLength: 2
+        address:
+          type: string
+          nullable: true
+          title: العنوان الرئيسي
+        phone:
+          type: string
+          nullable: true
+          title: الهاتف
+          maxLength: 30
+        email:
+          nullable: true
+          title: البريد الإلكتروني الرسمي
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          nullable: true
+          title: الموقع الإلكتروني
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        verification_status:
+          allOf:
+          - $ref: '#/components/schemas/VerificationStatusEnum'
+          title: حالة التدقيق والتحقق
+        data_provenance:
+          allOf:
+          - $ref: '#/components/schemas/DataProvenanceEnum'
+          title: مصدر ومصداقية البيانات
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ التحديث
+      required:
+      - created_at
+      - id
+      - name
+      - org_type
+      - updated_at
+    OrganizationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: الاسم الرسمي للهيئة أو المؤسسة
+          maxLength: 255
+        org_type:
+          allOf:
+          - $ref: '#/components/schemas/OrgTypeEnum'
+          title: طبيعة ونوع الهيئة
+        nif:
+          type: string
+          nullable: true
+          title: رقم التعريف الجبائي (NIF)
+          maxLength: 30
+        registration_number:
+          type: string
+          nullable: true
+          title: السجل التجاري أو مرسوم الإنشاء
+          maxLength: 50
+        nis:
+          type: string
+          nullable: true
+          title: رقم التعريف الإحصائي (NIS)
+          maxLength: 30
+        legal_status:
+          type: string
+          nullable: true
+          title: الشكل القانوني
+          maxLength: 100
+        wilaya_code:
+          type: string
+          nullable: true
+          title: رمز الولاية (01-58)
+          maxLength: 2
+        address:
+          type: string
+          nullable: true
+          title: العنوان الرئيسي
+        phone:
+          type: string
+          nullable: true
+          title: الهاتف
+          maxLength: 30
+        email:
+          nullable: true
+          title: البريد الإلكتروني الرسمي
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          nullable: true
+          title: الموقع الإلكتروني
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        verification_status:
+          allOf:
+          - $ref: '#/components/schemas/VerificationStatusEnum'
+          title: حالة التدقيق والتحقق
+        data_provenance:
+          allOf:
+          - $ref: '#/components/schemas/DataProvenanceEnum'
+          title: مصدر ومصداقية البيانات
+      required:
+      - name
+      - org_type
+    PaginatedAuditLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+    PaginatedBidList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Bid'
+    PaginatedBudgetList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Budget'
+    PaginatedContractList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contract'
+    PaginatedDocumentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Document'
+    PaginatedEvaluationFormulaList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationFormula'
+    PaginatedInvestmentOperationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvestmentOperation'
+    PaginatedLegalArticleList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LegalArticle'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedOrganizationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
+    PaginatedProcurementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Procurement'
+    PaginatedProjectList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+    PaginatedReceptionRecordList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReceptionRecord'
+    PaginatedServiceOrderList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceOrder'
+    PaginatedTenderDocumentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenderDocument'
+    PatchedBidRequest:
+      type: object
+      properties:
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية المعنية
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BidStatusEnum'
+          title: حالة العرض
+        financial_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبلغ المالي المقترح (دج)
+        execution_delay_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: أجل التنفيذ المقترح (بالأيام)
+        technical_offer_doc:
+          type: string
+          format: uuid
+          title: ملف العرض التقني
+          nullable: true
+        financial_offer_doc:
+          type: string
+          format: uuid
+          title: ملف العرض المالي
+          nullable: true
+        administrative_doc:
+          type: string
+          format: uuid
+          title: ملف الترشح والوثائق الإدارية
+          nullable: true
+    PatchedBudgetRequest:
+      type: object
+      properties:
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        fiscal_year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: السنة المالية
+        initial_allocation:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: الاعتماد المالي المبدئي (دج)
+        current_allocation:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: الاعتماد المالي الحالي (دج)
+        committed_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبالغ الملتزم بها (دج)
+    PatchedContractRequest:
+      type: object
+      properties:
+        contract_number:
+          type: string
+          minLength: 1
+          title: رقم العقد أو الصفقة المبرمة
+          maxLength: 60
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية الأصلية
+        winning_bid:
+          type: string
+          format: uuid
+          title: العرض الفائز المعتمد
+        contractor:
+          type: string
+          format: uuid
+          title: المتعامل الاقتصادي الحائز على الصفقة
+        contract_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: المبلغ الإجمالي للصفقة (دج)
+        performance_guarantee_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: مبلغ كفالة حسن التنفيذ (دج)
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ContractStatusEnum'
+          title: حالة العقد
+        signature_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاريخ توقيع الصفقة
+        start_date:
+          type: string
+          format: date
+          nullable: true
+          title: تاريخ سريان العقد
+        completion_delay_months:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: مدة الإنجاز بالشهور
+    PatchedDocumentRequest:
+      type: object
+      properties:
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        title:
+          type: string
+          minLength: 1
+          title: عنوان أو وصف الوثيقة
+          maxLength: 255
+        file_path:
+          type: string
+          minLength: 1
+          title: المسار التخزيني الآمن
+          maxLength: 500
+        file_size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: حجم الملف بالبايت
+        mime_type:
+          type: string
+          minLength: 1
+          title: نوع الملف (MIME)
+          maxLength: 100
+        file_hash_sha256:
+          type: string
+          minLength: 1
+          title: البصمة الرقمية (SHA-256)
+          maxLength: 64
+        security_status:
+          allOf:
+          - $ref: '#/components/schemas/SecurityStatusEnum'
+          title: الحالة الأمنية
+        is_private:
+          type: boolean
+          title: ملف محمي (غير متاح للعامة)
+    PatchedEvaluationFormulaRequest:
+      type: object
+      properties:
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          default: 1
+          title: إصدار صيغة التقييم
+        is_official:
+          type: boolean
+          title: صيغة رسمية معتمدة
+        technical_weight_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: نسبة ترجيح العرض التقني (%)
+        financial_weight_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: نسبة ترجيح العرض المالي (%)
+        minimum_technical_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          title: العتبة الدنيا للإقصاء التقني (من 100)
+        decimal_precision:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: عدد الخانات العشرية للتقريب
+    PatchedInvestmentOperationRequest:
+      type: object
+      properties:
+        operation_number:
+          type: string
+          minLength: 1
+          title: رقم تسجيل العملية (N° Opération)
+          maxLength: 60
+        title:
+          type: string
+          minLength: 1
+          title: عنوان العملية الاستثمارية
+          maxLength: 255
+        budget:
+          type: string
+          format: uuid
+          title: الميزانية المرتبطة
+        program_authorization:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: رخصة البرنامج (AP - Autorisation de Programme)
+        payment_credits:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: اعتمادات الدفع (CP - Crédits de Paiement)
+    PatchedNotificationRequest:
+      type: object
+      properties:
+        notification_type:
+          allOf:
+          - $ref: '#/components/schemas/NotificationTypeEnum'
+          title: نوع التنبيه
+        title:
+          type: string
+          minLength: 1
+          title: عنوان التنبيه
+          maxLength: 255
+        message:
+          type: string
+          minLength: 1
+          title: نص الرسالة والتفاصيل
+        resource_type:
+          type: string
+          title: نوع الكيان المرتبط
+          maxLength: 50
+        resource_id:
+          type: string
+          title: معرف الكيان
+          maxLength: 100
+        is_read:
+          type: boolean
+          title: تمت القراءة
+    PatchedOrganizationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: الاسم الرسمي للهيئة أو المؤسسة
+          maxLength: 255
+        org_type:
+          allOf:
+          - $ref: '#/components/schemas/OrgTypeEnum'
+          title: طبيعة ونوع الهيئة
+        nif:
+          type: string
+          nullable: true
+          title: رقم التعريف الجبائي (NIF)
+          maxLength: 30
+        registration_number:
+          type: string
+          nullable: true
+          title: السجل التجاري أو مرسوم الإنشاء
+          maxLength: 50
+        nis:
+          type: string
+          nullable: true
+          title: رقم التعريف الإحصائي (NIS)
+          maxLength: 30
+        legal_status:
+          type: string
+          nullable: true
+          title: الشكل القانوني
+          maxLength: 100
+        wilaya_code:
+          type: string
+          nullable: true
+          title: رمز الولاية (01-58)
+          maxLength: 2
+        address:
+          type: string
+          nullable: true
+          title: العنوان الرئيسي
+        phone:
+          type: string
+          nullable: true
+          title: الهاتف
+          maxLength: 30
+        email:
+          nullable: true
+          title: البريد الإلكتروني الرسمي
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        website:
+          nullable: true
+          title: الموقع الإلكتروني
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        verification_status:
+          allOf:
+          - $ref: '#/components/schemas/VerificationStatusEnum'
+          title: حالة التدقيق والتحقق
+        data_provenance:
+          allOf:
+          - $ref: '#/components/schemas/DataProvenanceEnum'
+          title: مصدر ومصداقية البيانات
+    PatchedProcurementRequest:
+      type: object
+      properties:
+        procurement_number:
+          type: string
+          minLength: 1
+          title: رقم الصفقة الرسمي
+          maxLength: 60
+        title:
+          type: string
+          minLength: 1
+          title: موضوع الصفقة العمومية
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+          title: تفاصيل ومواصفات الصفقة
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        project:
+          type: string
+          format: uuid
+          title: المشروع المرتبط
+          nullable: true
+        procedure_type:
+          allOf:
+          - $ref: '#/components/schemas/ProcedureTypeEnum'
+          title: طريقة وإجراء الإبرام
+        estimated_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: التقدير الإداري المالي (دج)
+        currency:
+          type: string
+          minLength: 1
+          title: العملة
+          maxLength: 10
+        publication_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: تاريخ نشر الإعلان
+        submission_deadline:
+          type: string
+          format: date-time
+          nullable: true
+          title: الأجل الأقصى لإيداع العروض
+        bid_validity_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: مدة صلاحية العروض (بالأيام)
+        appeal_deadline:
+          type: string
+          format: date-time
+          nullable: true
+          title: آخر أجل لتقديم الطعون
+        legal_source_reference:
+          type: string
+          minLength: 1
+          title: المرجعية القانونية المطبقة
+          maxLength: 200
+        requires_tender_fee:
+          type: boolean
+          title: سحب دفتر الشروط بمقابل مالي
+        tender_fee_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          title: مبلغ حقوق سحب دفتر الشروط (دج)
+    PatchedProjectRequest:
+      type: object
+      properties:
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        code:
+          type: string
+          minLength: 1
+          title: رمز المشروع
+          maxLength: 50
+        name:
+          type: string
+          minLength: 1
+          title: اسم المشروع
+          maxLength: 255
+        description:
+          type: string
+          title: تفاصيل وأهداف المشروع
+        operation:
+          type: string
+          format: uuid
+          title: العملية الاستثمارية المرتبطة
+          nullable: true
+        estimated_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: التكلفة التقديرية الإجمالية (دج)
+    PatchedReceptionRecordRequest:
+      type: object
+      properties:
+        contract:
+          type: string
+          format: uuid
+          title: العقد المعني
+        reception_type:
+          allOf:
+          - $ref: '#/components/schemas/ReceptionTypeEnum'
+          title: نوع الاستلام
+        pv_number:
+          type: string
+          minLength: 1
+          title: رقم محضر الاستلام
+          maxLength: 50
+        reception_date:
+          type: string
+          format: date
+          title: تاريخ الاستلام
+        decision:
+          allOf:
+          - $ref: '#/components/schemas/DecisionEnum'
+          title: قرار لجنة الاستلام
+        reservations_text:
+          type: string
+          title: قائمة التحفظات والملاحظات
+        guarantee_release_approved:
+          type: boolean
+          title: الموافقة على رفع اليد عن كفالة الضمان
+    PatchedServiceOrderRequest:
+      type: object
+      properties:
+        contract:
+          type: string
+          format: uuid
+          title: العقد المعني
+        ods_number:
+          type: string
+          minLength: 1
+          title: رقم الأمر بالخدمة
+          maxLength: 50
+        ods_type:
+          allOf:
+          - $ref: '#/components/schemas/OdsTypeEnum'
+          title: نوع الأمر بالخدمة
+        issue_date:
+          type: string
+          format: date
+          title: تاريخ الإصدار
+        effective_date:
+          type: string
+          format: date
+          title: تاريخ السريان والنفاذ
+        notes:
+          type: string
+          title: ملاحظات وتوجيهات
+    PatchedTenderDocumentRequest:
+      type: object
+      properties:
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية المرتبطة
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          default: 1
+          title: رقم الإصدار (Version)
+        title:
+          type: string
+          minLength: 1
+          title: عنوان دفتر الشروط
+          maxLength: 255
+        document:
+          type: string
+          format: uuid
+          title: الملف المرفق الأصلي
+        is_published:
+          type: boolean
+          title: منشور رسمياً للتحميل
+        content_hash:
+          type: string
+          title: البصمة الرقمية للنسخة
+          maxLength: 64
+        extracted_criteria:
+          title: معايير التقييم المستخرجة
+        eligibility_conditions:
+          title: شروط التأهيل والقدرات الدنيا
+    ProcedureTypeEnum:
+      enum:
+      - OPEN_TENDER
+      - RESTRICTED_TENDER
+      - COMPETITIVE_DIALOGUE
+      - CONSULTATION
+      type: string
+      description: |-
+        * `OPEN_TENDER` - طلب عروض مفتوح
+        * `RESTRICTED_TENDER` - طلب عروض محدود
+        * `COMPETITIVE_DIALOGUE` - مسابقة أو حوار تنافسي
+        * `CONSULTATION` - استشارة / إجراء مكيف
+    Procurement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        procurement_number:
+          type: string
+          title: رقم الصفقة الرسمي
+          maxLength: 60
+        title:
+          type: string
+          title: موضوع الصفقة العمومية
+          maxLength: 255
+        description:
+          type: string
+          title: تفاصيل ومواصفات الصفقة
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        organization_name:
+          type: string
+          readOnly: true
+        project:
+          type: string
+          format: uuid
+          title: المشروع المرتبط
+          nullable: true
+        procedure_type:
+          allOf:
+          - $ref: '#/components/schemas/ProcedureTypeEnum'
+          title: طريقة وإجراء الإبرام
+        procedure_display:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ProcurementStatusEnum'
+          readOnly: true
+          title: حالة الصفقة الحالية
+        status_display:
+          type: string
+          readOnly: true
+        estimated_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: التقدير الإداري المالي (دج)
+        currency:
+          type: string
+          title: العملة
+          maxLength: 10
+        publication_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: تاريخ نشر الإعلان
+        submission_deadline:
+          type: string
+          format: date-time
+          nullable: true
+          title: الأجل الأقصى لإيداع العروض
+        bid_validity_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: مدة صلاحية العروض (بالأيام)
+        appeal_deadline:
+          type: string
+          format: date-time
+          nullable: true
+          title: آخر أجل لتقديم الطعون
+        legal_source_reference:
+          type: string
+          title: المرجعية القانونية المطبقة
+          maxLength: 200
+        requires_tender_fee:
+          type: boolean
+          title: سحب دفتر الشروط بمقابل مالي
+        tender_fee_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          title: مبلغ حقوق سحب دفتر الشروط (دج)
+        created_by:
+          type: string
+          format: uuid
+          title: المستخدم المنشئ
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ التحديث
+      required:
+      - created_at
+      - created_by
+      - description
+      - estimated_budget
+      - id
+      - organization
+      - organization_name
+      - procedure_display
+      - procurement_number
+      - status
+      - status_display
+      - title
+      - updated_at
+    ProcurementRequest:
+      type: object
+      properties:
+        procurement_number:
+          type: string
+          minLength: 1
+          title: رقم الصفقة الرسمي
+          maxLength: 60
+        title:
+          type: string
+          minLength: 1
+          title: موضوع الصفقة العمومية
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+          title: تفاصيل ومواصفات الصفقة
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        project:
+          type: string
+          format: uuid
+          title: المشروع المرتبط
+          nullable: true
+        procedure_type:
+          allOf:
+          - $ref: '#/components/schemas/ProcedureTypeEnum'
+          title: طريقة وإجراء الإبرام
+        estimated_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: التقدير الإداري المالي (دج)
+        currency:
+          type: string
+          minLength: 1
+          title: العملة
+          maxLength: 10
+        publication_date:
+          type: string
+          format: date-time
+          nullable: true
+          title: تاريخ نشر الإعلان
+        submission_deadline:
+          type: string
+          format: date-time
+          nullable: true
+          title: الأجل الأقصى لإيداع العروض
+        bid_validity_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          title: مدة صلاحية العروض (بالأيام)
+        appeal_deadline:
+          type: string
+          format: date-time
+          nullable: true
+          title: آخر أجل لتقديم الطعون
+        legal_source_reference:
+          type: string
+          minLength: 1
+          title: المرجعية القانونية المطبقة
+          maxLength: 200
+        requires_tender_fee:
+          type: boolean
+          title: سحب دفتر الشروط بمقابل مالي
+        tender_fee_amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          title: مبلغ حقوق سحب دفتر الشروط (دج)
+      required:
+      - description
+      - estimated_budget
+      - organization
+      - procurement_number
+      - title
+    ProcurementStatusEnum:
+      enum:
+      - DRAFT
+      - PREPARATION
+      - APPROVAL
+      - PUBLICATION
+      - BID_SUBMISSION
+      - OPENING
+      - EVALUATION
+      - PROVISIONAL_AWARD
+      - APPEAL
+      - CONTRACT
+      - EXECUTION
+      - RECEPTION
+      - CLOSED
+      - CANCELLED
+      type: string
+      description: |-
+        * `DRAFT` - مسودة
+        * `PREPARATION` - قيد التحضير والإعداد
+        * `APPROVAL` - مصادقة لجنة الصفقات
+        * `PUBLICATION` - إشهار ونشر الإعلان
+        * `BID_SUBMISSION` - مرحلة إيداع العروض
+        * `OPENING` - جلسة فتح الأظرفة
+        * `EVALUATION` - تقييم العروض والترتيب
+        * `PROVISIONAL_AWARD` - الإعلان عن المنح المؤقت
+        * `APPEAL` - فترة الطعون القانونية
+        * `CONTRACT` - إبرام وتوقيع العقد
+        * `EXECUTION` - مرحلة التنفيذ الميداني
+        * `RECEPTION` - الاستلام المؤقت / النهائي
+        * `CLOSED` - مغلقة ومنتهية
+        * `CANCELLED` - ملغاة
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        code:
+          type: string
+          title: رمز المشروع
+          maxLength: 50
+        name:
+          type: string
+          title: اسم المشروع
+          maxLength: 255
+        description:
+          type: string
+          title: تفاصيل وأهداف المشروع
+        operation:
+          type: string
+          format: uuid
+          title: العملية الاستثمارية المرتبطة
+          nullable: true
+        estimated_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: التكلفة التقديرية الإجمالية (دج)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - code
+      - created_at
+      - id
+      - name
+      - organization
+    ProjectRequest:
+      type: object
+      properties:
+        organization:
+          type: string
+          format: uuid
+          title: الهيئة أو المؤسسة المالكة
+        code:
+          type: string
+          minLength: 1
+          title: رمز المشروع
+          maxLength: 50
+        name:
+          type: string
+          minLength: 1
+          title: اسم المشروع
+          maxLength: 255
+        description:
+          type: string
+          title: تفاصيل وأهداف المشروع
+        operation:
+          type: string
+          format: uuid
+          title: العملية الاستثمارية المرتبطة
+          nullable: true
+        estimated_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          title: التكلفة التقديرية الإجمالية (دج)
+      required:
+      - code
+      - name
+      - organization
+    ReceptionRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        contract:
+          type: string
+          format: uuid
+          title: العقد المعني
+        reception_type:
+          allOf:
+          - $ref: '#/components/schemas/ReceptionTypeEnum'
+          title: نوع الاستلام
+        pv_number:
+          type: string
+          title: رقم محضر الاستلام
+          maxLength: 50
+        reception_date:
+          type: string
+          format: date
+          title: تاريخ الاستلام
+        decision:
+          allOf:
+          - $ref: '#/components/schemas/DecisionEnum'
+          title: قرار لجنة الاستلام
+        reservations_text:
+          type: string
+          title: قائمة التحفظات والملاحظات
+        guarantee_release_approved:
+          type: boolean
+          title: الموافقة على رفع اليد عن كفالة الضمان
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - contract
+      - created_at
+      - decision
+      - id
+      - pv_number
+      - reception_date
+      - reception_type
+    ReceptionRecordRequest:
+      type: object
+      properties:
+        contract:
+          type: string
+          format: uuid
+          title: العقد المعني
+        reception_type:
+          allOf:
+          - $ref: '#/components/schemas/ReceptionTypeEnum'
+          title: نوع الاستلام
+        pv_number:
+          type: string
+          minLength: 1
+          title: رقم محضر الاستلام
+          maxLength: 50
+        reception_date:
+          type: string
+          format: date
+          title: تاريخ الاستلام
+        decision:
+          allOf:
+          - $ref: '#/components/schemas/DecisionEnum'
+          title: قرار لجنة الاستلام
+        reservations_text:
+          type: string
+          title: قائمة التحفظات والملاحظات
+        guarantee_release_approved:
+          type: boolean
+          title: الموافقة على رفع اليد عن كفالة الضمان
+      required:
+      - contract
+      - decision
+      - pv_number
+      - reception_date
+      - reception_type
+    ReceptionTypeEnum:
+      enum:
+      - PROVISIONAL
+      - FINAL
+      type: string
+      description: |-
+        * `PROVISIONAL` - استلام مؤقت (Réception Provisoire)
+        * `FINAL` - استلام نهائي (Réception Définitive)
+    ResultEnum:
+      enum:
+      - SUCCESS
+      - FAILURE
+      - DENIED
+      type: string
+      description: |-
+        * `SUCCESS` - ناجحة
+        * `FAILURE` - فاشلة
+        * `DENIED` - مرفوضة الصلاحية
+    SecurityStatusEnum:
+      enum:
+      - PENDING_SCAN
+      - CLEAN
+      - QUARANTINED
+      type: string
+      description: |-
+        * `PENDING_SCAN` - قيد الفحص الأمني
+        * `CLEAN` - سليم ومؤكد خلوه من البرمجيات الخبيثة
+        * `QUARANTINED` - في الحجر الأمني (ملف مشبوه)
+    ServiceOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        contract:
+          type: string
+          format: uuid
+          title: العقد المعني
+        ods_number:
+          type: string
+          title: رقم الأمر بالخدمة
+          maxLength: 50
+        ods_type:
+          allOf:
+          - $ref: '#/components/schemas/OdsTypeEnum'
+          title: نوع الأمر بالخدمة
+        issue_date:
+          type: string
+          format: date
+          title: تاريخ الإصدار
+        effective_date:
+          type: string
+          format: date
+          title: تاريخ السريان والنفاذ
+        notes:
+          type: string
+          title: ملاحظات وتوجيهات
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - contract
+      - created_at
+      - effective_date
+      - id
+      - issue_date
+      - ods_number
+      - ods_type
+    ServiceOrderRequest:
+      type: object
+      properties:
+        contract:
+          type: string
+          format: uuid
+          title: العقد المعني
+        ods_number:
+          type: string
+          minLength: 1
+          title: رقم الأمر بالخدمة
+          maxLength: 50
+        ods_type:
+          allOf:
+          - $ref: '#/components/schemas/OdsTypeEnum'
+          title: نوع الأمر بالخدمة
+        issue_date:
+          type: string
+          format: date
+          title: تاريخ الإصدار
+        effective_date:
+          type: string
+          format: date
+          title: تاريخ السريان والنفاذ
+        notes:
+          type: string
+          title: ملاحظات وتوجيهات
+      required:
+      - contract
+      - effective_date
+      - issue_date
+      - ods_number
+      - ods_type
+    TenderDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          title: المعرف الفريد
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية المرتبطة
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          default: 1
+          title: رقم الإصدار (Version)
+        title:
+          type: string
+          title: عنوان دفتر الشروط
+          maxLength: 255
+        document:
+          type: string
+          format: uuid
+          title: الملف المرفق الأصلي
+        is_published:
+          type: boolean
+          title: منشور رسمياً للتحميل
+        content_hash:
+          type: string
+          title: البصمة الرقمية للنسخة
+          maxLength: 64
+        extracted_criteria:
+          title: معايير التقييم المستخرجة
+        eligibility_conditions:
+          title: شروط التأهيل والقدرات الدنيا
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          title: تاريخ الإنشاء
+      required:
+      - created_at
+      - document
+      - id
+      - procurement
+      - title
+    TenderDocumentRequest:
+      type: object
+      properties:
+        procurement:
+          type: string
+          format: uuid
+          title: الصفقة العمومية المرتبطة
+        version:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          default: 1
+          title: رقم الإصدار (Version)
+        title:
+          type: string
+          minLength: 1
+          title: عنوان دفتر الشروط
+          maxLength: 255
+        document:
+          type: string
+          format: uuid
+          title: الملف المرفق الأصلي
+        is_published:
+          type: boolean
+          title: منشور رسمياً للتحميل
+        content_hash:
+          type: string
+          title: البصمة الرقمية للنسخة
+          maxLength: 64
+        extracted_criteria:
+          title: معايير التقييم المستخرجة
+        eligibility_conditions:
+          title: شروط التأهيل والقدرات الدنيا
+      required:
+      - document
+      - procurement
+      - title
+    VerificationStatusEnum:
+      enum:
+      - PENDING
+      - VERIFIED
+      - REJECTED
+      type: string
+      description: |-
+        * `PENDING` - قيد التحقق والتأكيد
+        * `VERIFIED` - محققة ومعتمدة
+        * `REJECTED` - مرفوضة
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"

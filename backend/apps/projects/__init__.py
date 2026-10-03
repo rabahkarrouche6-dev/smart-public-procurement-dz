@@ -1,0 +1,1 @@
+"""Public projects management package."""

@@ -1,0 +1,1 @@
+"""Procurements domain package."""
